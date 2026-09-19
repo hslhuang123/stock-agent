@@ -1,0 +1,116 @@
+# ---------------------------------------------------------------------------
+# Stock agent configuration
+# ---------------------------------------------------------------------------
+
+benchmark: SPY
+
+# Static seed list of equity tickers.
+# Used verbatim when universe_config.mode == "static"; unioned with discovered
+# names when mode == "hybrid"; ignored when mode == "dynamic".
+# Mix of requested names (AAPL, AMD, NVDA, CVE.TO, XYZ, T.TO) and the
+# top-ranked names from the previous screen.
+universe:
+  - CRWD
+  - SNOW
+  - NET
+  - CRM
+  - PANW
+  - MRK
+  - ABBV
+  - AAPL    # Apple Inc.
+  - AMD     # Advanced Micro Devices, Inc.
+  - NVDA    # NVIDIA Corporation
+  - CVE.TO  # Cenovus Energy Inc. (TSX-listed)
+  - XYZ     # Block, Inc. (formerly Square)
+  - T.TO    # TELUS Corporation (TSX-listed)
+
+# ---------------------------------------------------------------------------
+# Universe resolution
+# ---------------------------------------------------------------------------
+# static  — screen the `universe:` list above (default, fully reproducible)
+# dynamic — discover names from Yahoo's screener, ignoring `universe:`
+# hybrid  — discovered names unioned with `universe:`
+universe_config:
+  mode: static
+  # Cap on discovered names carried forward (screener returns <=250 per call).
+  max_results: 250
+  # Reuse a discovery cache younger than this (minutes) instead of re-querying.
+  # Set to 0 to always hit the screener.
+  cache_minutes: 30
+
+  discovery:
+    region: us
+    # NYQ/NMS/NGM/NCM/ASE = NYSE + Nasdaq tiers + AMEX. Excludes OTC/pink
+    # sheets (PNK/OQX/OQB), which are not tradable at this size.
+    exchanges: [NYQ, NMS, NGM, NCM, ASE]
+    min_price: 5.0
+    min_market_cap: 2000000000      # $2B
+    min_avg_volume_3m: 500000       # 500k shares/day (dollar volume is
+                                    # re-checked precisely in rank_trending)
+    # Optional Yahoo predefined screeners unioned into the result, e.g.
+    # [most_actives, day_gainers]. Leave empty for gate-only discovery.
+    screeners: []
+    # Collapse multiple share classes of one company (GOOG/GOOGL).
+    dedupe_companies: true
+    sort_field: intradaymarketcap
+    sort_asc: false
+
+  # Universe used by the walk-forward backtest.
+  backtest:
+    # point_in_time_liquidity — rebuild the universe on every rebalance date
+    #                           from price history (no look-ahead). Use this
+    #                           when universe_config.mode is dynamic/hybrid.
+    # static                  — use the resolved list for every date.
+    mode: static
+    # Names rebuilt per date, and the trailing liquidity window in days.
+    pool_size: 1000
+    lookback_days: 20
+
+# ---------------------------------------------------------------------------
+# Ingestion behaviour
+# ---------------------------------------------------------------------------
+ingest:
+  # If a ticker returns no rows for the requested period, retry with each of
+  # these wider periods in order before giving up.
+  retry_periods: [2y, 5y, max]
+  # On total failure: "drop" (record an error) or "synthetic" (fabricate).
+  # "synthetic" is for tests and smoke runs only — never for a real screen.
+  on_missing: drop
+  # Batched yfinance downloads are chunked to keep requests small and to
+  # avoid rate limiting a large dynamic universe.
+  batch_size: 40
+  batch_pause_seconds: 0.5
+
+screening:
+  lookback: 1y
+  interval: 1d
+  top_n: 15
+  min_price: 5.0
+  min_avg_dollar_volume: 5000000   # $5M/day average traded value
+  min_history_days: 130
+
+# Weights must sum to 1.0. Each factor is percentile-ranked across the
+# universe before weighting, so the final score is a 0-100 relative rank.
+scoring_weights:
+  momentum_3m: 0.22
+  momentum_6m: 0.13
+  relative_strength_3m: 0.18
+  trend_quality: 0.15
+  volume_surge: 0.10
+  proximity_52w_high: 0.09
+  risk_adjusted_momentum: 0.13
+
+risk:
+  account_size: 100000
+  risk_per_trade_pct: 1.0          # % of account risked per position
+  atr_stop_multiple: 2.0           # stop distance = ATR * this
+  max_position_pct: 10.0           # cap position at % of account
+  min_conviction: 0.45             # below this the validator vetoes
+
+agent:
+  # "rules" works offline. "llm" adds narrative synthesis on top.
+  provider: rules
+  model: gpt-4o-mini
+  temperature: 0.2
+  top_candidates: 15               # how many of the shortlist get a full thesis
+  horizon: "2-6 weeks"

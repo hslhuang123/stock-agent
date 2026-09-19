@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Env / secrets
+.env
+
+# Data & outputs
+data/
+reports/
+runs.db
+
+# OS
+.DS_Store
+
+# Tool-generated skill symlinks (point into .venv, not portable)
+.agents/
+.claude/
