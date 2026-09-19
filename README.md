@@ -75,6 +75,9 @@ streamlit run web/app.py --server.headless true    # remote / SSH box
 The app resolves the project root itself, so it runs from any working directory
 (as long as `.venv` is the active interpreter).
 
+> **Putting it online?** See **[DEPLOY.md](DEPLOY.md)** — Streamlit Community Cloud
+deploys this app straight from the GitHub repo, free.
+
 Four pages, auto-discovered from `web/pages/`:
 
 | Page | URL | What it shows |
