@@ -6,6 +6,30 @@
 
 ---
 
+## Option 0 — GitHub Codespaces (run it *on* GitHub)
+
+Codespaces is a GitHub-hosted dev machine, so the app runs from your repo with no
+other service. Good for demos/sharing; it is **not** permanent hosting (it stops
+when the codespace stops).
+
+1. Click **Code → Codespaces → Create codespace on main**, or use the badge in the
+   README, or open <https://codespaces.new/hslhuang123/stock-agent>.
+2. Wait for setup — the dev container installs `requirements.txt` and starts
+   Streamlit automatically.
+3. The **Ports** tab forwards port **8501**; a preview opens. To share it, set the
+   port's visibility to **Public** (Ports → right-click 8501 → Port Visibility).
+
+If the app isn't running, start it in the terminal:
+
+```bash
+streamlit run web/app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+```
+
+Codespaces free tier gives personal accounts monthly core-hours; it is not a
+24/7 deployment. For that, use Streamlit Community Cloud below.
+
+---
+
 ## Option 1 — Streamlit Community Cloud (recommended)
 
 1. Go to <https://share.streamlit.io> and sign in with GitHub.

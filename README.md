@@ -1,5 +1,7 @@
 # Stock Trend Agent
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/hslhuang123/stock-agent)
+
 An agentic pipeline that **detects trending US equities, analyzes them, and produces
 structured, risk-bounded trade theses**.
 
