@@ -71,3 +71,7 @@ def test_analysis_pages_render_without_error():
         assert not at.exception, f"{page} raised: {[str(e.value) for e in at.exception]}"
         labels = [c.label for c in at.segmented_control]
         assert "Universe source" in labels
+
+    # The help page has no universe selector, but must still render.
+    at.switch_page("pages/5_Help.py").run()
+    assert not at.exception, f"help raised: {[str(e.value) for e in at.exception]}"
